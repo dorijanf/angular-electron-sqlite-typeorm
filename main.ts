@@ -1,6 +1,8 @@
 import { app, BrowserWindow, screen } from 'electron';
+import { Sequelize } from "sequelize";
 import * as path from 'path';
 import * as url from 'url';
+import * as console from "console";
 
 // Initialize remote module
 require('@electron/remote/main').initialize();
@@ -9,10 +11,25 @@ let win: BrowserWindow = null;
 const args = process.argv.slice(1),
   serve = args.some(val => val === '--serve');
 
+  const sequelize = new Sequelize({
+    dialect: "sqlite",
+    storage: "./database.sqlite",
+  });
+
 function createWindow(): BrowserWindow {
 
   const electronScreen = screen;
   const size = electronScreen.getPrimaryDisplay().workAreaSize;
+  const electronConsole = new console.Console(process.stdout, process.stderr);
+
+  electronConsole.log("*** CREATING WINDOW ! ***");
+
+    try {
+    sequelize.authenticate();
+    electronConsole.log("**** ----- Connection has been established successfully. ---- *****");
+  } catch (error) {
+    electronConsole.error("**** ----- Unable to connect to the database: **** ----- ", error);
+  }
 
   // Create the browser window.
   win = new BrowserWindow({
