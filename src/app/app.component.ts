@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { ElectronService } from './core/services';
 import { TranslateService } from '@ngx-translate/core';
-import { AppConfig } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -14,7 +13,6 @@ export class AppComponent {
     private translate: TranslateService
   ) {
     this.translate.setDefaultLang('en');
-    console.log('AppConfig', AppConfig);
 
     if (electronService.isElectron) {
       console.log(process.env);

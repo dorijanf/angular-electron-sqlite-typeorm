@@ -9,7 +9,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowJs": true,
-    "target": "es5",
+    "target": "es2017",
     "typeRoots": [
       "node_modules/@types"
     ],
@@ -24,6 +24,6 @@
     "src/**/*.d.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
   ]
 }
