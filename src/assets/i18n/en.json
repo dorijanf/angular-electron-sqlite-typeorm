@@ -4,6 +4,10 @@
           "TITLE": "Dogs",
           "GO_TO_DETAIL": "Go to Detail"
       },
+      "QUEUE": {
+        "TITLE": "Queue",
+        "BACK_TO_HOME": "Back to Home"
+      },
       "DETAIL": {
         "TITLE": "Detail page !",
         "BACK_TO_HOME": "Back to Home"

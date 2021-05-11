@@ -10,12 +10,12 @@ import { AnimalDto } from "../../models/animal-dto";
  * encapsulate all logic for fetching and manipulating the displayed data
  * (including sorting, pagination, and filtering).
  */
-export class AnimalListDataSource extends DataSource<AnimalDto> {
-  data: AnimalDto[];
+export class AnimalListDataSource extends DataSource<any> {
+  data: any[];
   paginator: MatPaginator | undefined;
   sort: MatSort | undefined;
 
-  constructor(data: AnimalDto[]) {
+  constructor(data: any[]) {
     super();
     this.data = data;
   }
@@ -25,7 +25,7 @@ export class AnimalListDataSource extends DataSource<AnimalDto> {
    * the returned stream emits new items.
    * @returns A stream of the items to be rendered.
    */
-  connect(): Observable<AnimalDto[]> {
+  connect(): Observable<any[]> {
     if (this.paginator && this.sort) {
       // Combine everything that affects the rendered data into one update
       // stream for the data-table to consume.
@@ -54,7 +54,7 @@ export class AnimalListDataSource extends DataSource<AnimalDto> {
   /**
    * Paginate the data (client-side)
    */
-  private getPagedData(data: AnimalDto[]): AnimalDto[] {
+  private getPagedData(data: any[]): any[] {
     if (this.paginator) {
       const startIndex = this.paginator.pageIndex * this.paginator.pageSize;
       return data.splice(startIndex, this.paginator.pageSize);
@@ -66,7 +66,7 @@ export class AnimalListDataSource extends DataSource<AnimalDto> {
   /**
    * Sort the data (client-side)
    */
-  private getSortedData(data: AnimalDto[]): AnimalDto[] {
+  private getSortedData(data: any[]): any[] {
     if (!this.sort || !this.sort.active || this.sort.direction === "") {
       return data;
     }

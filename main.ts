@@ -1,7 +1,17 @@
-import { app, BrowserWindow, screen } from "electron";
+/* eslint-disable @typescript-eslint/no-misused-promises */
+import { app, ipcMain } from "electron";
+import { BrowserWindow } from "electron";
+import { screen } from "electron";
+import "reflect-metadata";
 import * as path from "path";
 import * as url from "url";
-import { startDatabase } from "./src/app/core/localdb/data-access";
+import { createConnection } from "typeorm";
+import { Animal } from "./src/localdb/entities/Animal";
+import { Species } from "./src/localdb/entities/Species";
+import { AnimalQueue } from "./src/localdb/entities/AnimalQueue";
+import { AnimalLocation } from "./src/localdb/entities/AnimalLocation";
+import { AnimalDto } from "./src/models/animal-dto";
+import { AnimalBm } from "./src/models/animal-bm";
 
 // Initialize remote module
 require("@electron/remote/main").initialize();
@@ -10,7 +20,19 @@ let win: BrowserWindow = null;
 const args = process.argv.slice(1),
   serve = args.some((val) => val === "--serve");
 
-function createWindow(): BrowserWindow {
+async function createWindow(): Promise<BrowserWindow> {
+  const connection = await createConnection({
+    type: "sqlite",
+    database: "database.sqlite",
+    entities: [Animal, AnimalLocation, Species, AnimalQueue],
+    synchronize: true,
+    logging: "all",
+  });
+
+  const animalRepo = connection.getRepository(Animal);
+  const locationRepo = connection.getRepository(AnimalLocation);
+  const speciesRepo = connection.getRepository(Species);
+  const animalQueueRepo = connection.getRepository(AnimalQueue);
   const electronScreen = screen;
   const size = electronScreen.getPrimaryDisplay().workAreaSize;
 
@@ -53,12 +75,107 @@ function createWindow(): BrowserWindow {
     win = null;
   });
 
+  ipcMain.handle("sync-local-data", async () => {
+    const animals = await animalQueueRepo.find();
+    const animalsToBeAdded: AnimalBm[] = [];
+    for (const animal of animals) {
+      if (animal.isSynced == 0) {
+        animalsToBeAdded.push(<AnimalBm>{
+          name: animal.name,
+          breed: animal.breed,
+          age: animal.age,
+          description: animal.description,
+          speciesId: animal.speciesId,
+          coordX: animal.coordX,
+          coordY: animal.coordY,
+        });
+      }
+    }
+    animalQueueRepo.clear();
+    return animalsToBeAdded;
+  });
+
+  ipcMain.handle(
+    "create-animal-local",
+    async (_event: any, animalToAdd: AnimalBm) => {
+      const animalQueue = <AnimalQueue>{
+        isUpdating: 0,
+        name: animalToAdd.name,
+        breed: animalToAdd.breed,
+        age: animalToAdd.age,
+        description: animalToAdd.description,
+        speciesId: animalToAdd.speciesId,
+        coordX: animalToAdd.coordX,
+        coordY: animalToAdd.coordY,
+      };
+      await animalQueueRepo.insert(animalQueue);
+    }
+  );
+
+  ipcMain.handle("store-species", async (_event: any, species: Species) => {
+    await speciesRepo.clear();
+    await speciesRepo.save(species);
+  });
+
+  // Database methods
+  ipcMain.handle("save-animal", async (_event: any, animalsToAdd: Animal[]) => {
+    await animalRepo.clear();
+    await animalRepo.insert(animalsToAdd);
+  });
+
+  ipcMain.handle("get-queue", async () => {
+    try {
+      const result = await animalQueueRepo.find();
+      return result;
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
+  ipcMain.handle("get-animals-local", async () => {
+    const result: AnimalDto[] = [];
+    try {
+      const animals = await animalRepo.find();
+      const locations = await locationRepo.find();
+      let counter = 0;
+      for (const animal of animals) {
+        const animalToAdd = <AnimalDto>{
+          id: animal.id,
+          name: animal.name,
+          description: animal.description,
+          age: animal.age,
+          createdAt: animal.createdAt,
+          updatedAt: animal.updatedAt,
+          breed: animal.breed,
+          location: {
+            animalId: locations[counter].animalId,
+            coordX: locations[counter].coordX,
+            coordY: locations[counter].coordY,
+          },
+          speciesId: animal.speciesId,
+        };
+        counter += 1;
+        result.push(animalToAdd);
+      }
+      return result;
+    } catch (err) {
+      console.log(err);
+    }
+  });
+
+  ipcMain.handle(
+    "save-animal-location",
+    async (_event: any, locations: AnimalLocation[]) => {
+      await locationRepo.clear();
+      await locationRepo.insert(locations);
+    }
+  );
+
   return win;
 }
 
 function initialize() {
-  setTimeout(createWindow, 400);
-  startDatabase();
+  createWindow();
 }
 
 try {
@@ -88,4 +205,3 @@ try {
   // Catch Error
   // throw e;
 }
-

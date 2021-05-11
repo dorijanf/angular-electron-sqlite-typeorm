@@ -7,7 +7,7 @@ import { AnimalDto } from "../../models/animal-dto";
 import { AnimalListDataSource } from "./animal-list-datasource";
 import { SpeciesEnum } from "../../models/species-enum";
 import { AnimalsService } from "../core/services/animals.service";
-import { initDatabaseData } from "../core/localdb/data-access";
+import { Observable } from "rxjs";
 
 @Component({
   selector: "app-home",
@@ -29,12 +29,13 @@ export class HomeComponent implements AfterViewInit, OnInit {
   }
 
   initializeTable(): void {
-    this.animalsService.getAnimals().subscribe((x) => {
-      //initDatabaseData(x);
-      this.dataSource = new AnimalListDataSource(x);
-      this.dataSource.sort = this.sort;
-      this.dataSource.paginator = this.paginator;
-      this.table.dataSource = this.dataSource;
+    this.animalsService.getAnimals().then((x: Observable<AnimalDto[]>) => {
+      x.subscribe((data) => {
+        this.dataSource = new AnimalListDataSource(data);
+        this.dataSource.sort = this.sort;
+        this.dataSource.paginator = this.paginator;
+        this.table.dataSource = this.dataSource;
+      });
     });
   }
 
