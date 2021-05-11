@@ -112,9 +112,9 @@ async function createWindow(): Promise<BrowserWindow> {
     }
   );
 
-  ipcMain.handle("store-species", async (_event: any, species: Species) => {
+  ipcMain.handle("store-species", async (_event: any, species: Species[]) => {
     await speciesRepo.clear();
-    await speciesRepo.save(species);
+    await speciesRepo.insert(species);
   });
 
   // Database methods

@@ -17,8 +17,8 @@ export class AppComponent {
     this.translate.setDefaultLang('en');
 
     if (electronService.isElectron) {
-      this.animalsService.getAnimals();
-      this.animalsService.getAnimalSpecies();
+      // this.animalsService.getAnimals();
+      // this.animalsService.getAnimalSpecies();
     } else {
       console.log('Run in browser');
     }

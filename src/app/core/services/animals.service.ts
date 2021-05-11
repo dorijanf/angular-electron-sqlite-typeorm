@@ -45,9 +45,6 @@ export class AnimalsService {
       this.connectionService.checkIfApiIsAvailable().then((response) => {
         if (response) {
           const result = this.http.post(this.apiUrl + this.appUrl, model);
-          result.subscribe((x) => {
-            console.log(x);
-          });
           resolve(result);
           this.syncLocalData();
         } else {
@@ -160,10 +157,8 @@ export class AnimalsService {
     model: Observable<AnimalDto[]>,
     species: Observable<Species[]>
   ): void {
-    species.subscribe((model) => {
-      for (const species of model) {
-        this.electronService.ipcRenderer.invoke("store-species", species);
-      }
+    species.subscribe((spec) => {
+      this.electronService.ipcRenderer.invoke("store-species", spec);
     });
     model.subscribe((model) => {
       const animalsToAdd: Animal[] = [];
