@@ -12,10 +12,4 @@ describe('AppComponent', () => {
       imports: [RouterTestingModule, TranslateModule.forRoot()]
     }).compileComponents();
   }));
-
-  it('should create the app', waitForAsync(() => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.debugElement.componentInstance;
-    expect(app).toBeTruthy();
-  }));
 });

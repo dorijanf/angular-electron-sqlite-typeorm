@@ -45,7 +45,9 @@ export class AnimalsService {
       this.connectionService.checkIfApiIsAvailable().then((response) => {
         if (response) {
           const result = this.http.post(this.apiUrl + this.appUrl, model);
-          resolve(result);
+          result.subscribe(x => {
+            console.log(x);
+          });
           this.syncLocalData();
         } else {
           if (this.electronService.isElectron) {
